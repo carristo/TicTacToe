@@ -29,7 +29,6 @@ public class Display {
 	private static boolean created = false;
 	private static JFrame window;
 	private static Canvas content;
-	private static Graphics2D graphics;
 	private static BufferStrategy bufferStrategy;
 	private static BufferedImage buffer;
 	private static int[] bufferData;
@@ -195,6 +194,7 @@ public class Display {
 	}
 	
 	public static void showResult(String result) {
+		swapBuffers();
 		String message;
 		if(result.equals("Draw") || result == "Draw" || result.compareTo("Draw")==0) {
 			message = "No winner. Try again?";

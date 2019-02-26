@@ -11,9 +11,7 @@ public class NewGameListener implements ActionListener{
 		command = e.getActionCommand();
 		System.out.println(command);
 	}
-//	public void mouseClicked(MouseEvent e) {
-//		isClicked = (e.getButton() == e.BUTTON1);
-//	}
+
 	
 	public boolean isNewGame() {
 		return command != null;

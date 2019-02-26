@@ -102,11 +102,26 @@ public class Game implements Runnable{
 			if(map[y][x] == Tile.EMPTY) {
 				map[y][x] = isCrossTurn ? Tile.CROSS : Tile.ZERO;
 				emptyTiles--;
-				checkVictory();
+				render();
+				if(checkVictory()) {
+					if(isCrossTurn) {
+						Display.showResult("Crosses");
+					} else {
+						Display.showResult("Zeros");
+					}
+				}
 				changePriority(y, x);
 				isCrossTurn = !isCrossTurn;
 				if(isWithComp & isPlayerCross) {
 					performTurn();
+					render();
+					if(checkVictory()) {
+						if(isCrossTurn) {
+							Display.showResult("Crosses");
+						} else {
+							Display.showResult("Zeros");
+						}
+					}
 				}
 			}
 			
@@ -189,166 +204,54 @@ public class Game implements Runnable{
 		
 	}
 	
+	private void checkNextTurnVictory() {
+		for(int i = 0; i < map.length; i++) {
+			for(int j = 0; j < map.length; j++) {
+				if(map[i][j] == Tile.EMPTY) {
+					map[i][j] = Tile.CROSS;
+					if(checkVictory()) {
+						priorityMap[i][j] = isPlayerCross ? Integer.MAX_VALUE/2 : Integer.MAX_VALUE;
+					}
+					map[i][j] = Tile.ZERO;
+					if(checkVictory()) {
+						priorityMap[i][j] = isPlayerCross ? Integer.MAX_VALUE: Integer.MAX_VALUE/2;
+					}
+					map[i][j] = Tile.EMPTY;
+				}
+			}
+		}
+	}
+	
 	public boolean checkVictory() {
 		return checkRows() | checkColumns() | checkDiagonals();
 
 	}
 	
 	public boolean checkRows() {
-		byte crossesOnLine  = 0;
-		byte zerosOnLine = 0;
-		//checking next turn victory
-		byte emptyTileX = 0;
-		byte emptyTileY = 0;
-		for(byte i = 0; i < map.length; i++) {
-			for(byte j = 0; j < map.length; j++) {
-				if(map[i][j] == Tile.CROSS) {
-					crossesOnLine++;
-				}else if(map[i][j] == Tile.ZERO) {
-					zerosOnLine++;
-				} else if(map[i][j] == Tile.EMPTY) {
-					emptyTileX = i;
-					emptyTileY = j;
-				}
-			}
-			if(crossesOnLine == map.length) {
-				Display.showResult("Crosses");
+		for(int i = 0; i < map.length; i++) {
+			if(map[i][0] != Tile.EMPTY & map[i][0] == map[i][1] & map[i][0] == map[i][2]) {
 				return true;
-			} else if(zerosOnLine == map.length) {
-				Display.showResult("Zeroes");
-				return true;
-			} else if(zerosOnLine == map.length - 1) {
-				if(emptyTileX >= 0 & emptyTileY >= 0) {
-					if(map[emptyTileX][emptyTileY] == Tile.EMPTY) {
-						priorityMap[emptyTileX][emptyTileY] = isPlayerCross ? Integer.MAX_VALUE : Integer.MAX_VALUE / 2;
-					}
-				}
-			} else if(crossesOnLine == map.length - 1) {
-				if(emptyTileX >= 0 & emptyTileY >= 0) {
-					if(map[emptyTileX][emptyTileY] == Tile.EMPTY) {
-						priorityMap[emptyTileX][emptyTileY] = isPlayerCross ? Integer.MAX_VALUE / 2 : Integer.MAX_VALUE;
-					}
-				}
 			}
-			crossesOnLine = 0;
-			zerosOnLine = 0;
-			emptyTileX = -1;
-			emptyTileY = -1;
 		}
 		return false;
 	}
 	
 	public boolean checkColumns() {
-		byte crossesOnLine  = 0;
-		byte zerosOnLine = 0;
-		//checking next turn victory
-		byte emptyTileX = -1;
-		byte emptyTileY = -1;
-		for(byte j = 0; j < map.length; j++) {
-			for(byte i = 0; i < map.length; i++) {
-				if(map[i][j] == Tile.CROSS) {
-					crossesOnLine++;
-				}else if(map[i][j] == Tile.ZERO) {
-					zerosOnLine++;
-				} else if(map[i][j] == Tile.EMPTY) {
-					emptyTileX = i;
-					emptyTileY = j;
-				}
-			}
-			if(crossesOnLine == map.length) {
-				Display.showResult("Crosses");
+		for(int i = 0; i < map.length; i++) {
+			if(map[0][i] != Tile.EMPTY & map[0][i] == map[1][i] & map[0][i] == map[2][i]) {
 				return true;
-			} else if(zerosOnLine == map.length) {
-				Display.showResult("Zeroes");
-				return true;
-			} else if(zerosOnLine == map.length - 1) {
-				if(emptyTileX >= 0 & emptyTileY >= 0) {
-					if(map[emptyTileX][emptyTileY] == Tile.EMPTY) {
-					priorityMap[emptyTileX][emptyTileY] = isPlayerCross ? Integer.MAX_VALUE : Integer.MAX_VALUE / 2;
-					}
-				}
-			} else if(crossesOnLine == map.length - 1) {
-				if(emptyTileX >= 0 & emptyTileY >= 0) {
-					if(map[emptyTileX][emptyTileY] == Tile.EMPTY) {
-						priorityMap[emptyTileX][emptyTileY] = isPlayerCross ? Integer.MAX_VALUE / 2 : Integer.MAX_VALUE;
-					}
-				}
 			}
-			crossesOnLine = 0;
-			zerosOnLine = 0;
-			emptyTileX = -1;
-			emptyTileY = 1;
 		}
 		return false;
+
 	}
 	
 	public boolean checkDiagonals() {
-		byte crossesOnLine  = 0;
-		byte zerosOnLine = 0;
-		//checking next turn victory
-		byte emptyTileX = -1;
-		byte emptyTileY = -1;
-		for(byte i = 0; i < map.length; i++) {
-			if(map[i][i] == Tile.CROSS) {
-				crossesOnLine++;
-			} else if(map[i][i] == Tile.ZERO) {
-				zerosOnLine++;
-			} else if(map[i][i] == Tile.EMPTY) {
-				emptyTileX = i;
-				emptyTileY = i;
-			}
+		if(map[0][0] != Tile.EMPTY & map[0][0] == map[1][1] & map[0][0] == map[2][2]) {
+			return true;
 		}
-		if(crossesOnLine == map.length) {
-			System.out.println("Crosses wins");
+		if(map[2][0] != Tile.EMPTY & map[2][0] == map[1][1] & map[2][0] == map[0][2]) {
 			return true;
-		} else if(zerosOnLine == map.length) {
-			System.out.println("Zeros wins");
-			return true;
-		} else if(zerosOnLine == map.length - 1) {
-			if(emptyTileX >= 0 & emptyTileY >= 0) {
-				if(map[emptyTileX][emptyTileY] == Tile.EMPTY) {
-					priorityMap[emptyTileX][emptyTileY] = isPlayerCross ? Integer.MAX_VALUE : Integer.MAX_VALUE / 2;
-				}
-			}
-		} else if(crossesOnLine == map.length - 1) {
-			if(emptyTileX >= 0 & emptyTileY >= 0 & map[emptyTileX][emptyTileY] == Tile.EMPTY) {
-				if(map[emptyTileX][emptyTileY] == Tile.EMPTY) {
-					priorityMap[emptyTileX][emptyTileY] = isPlayerCross ? Integer.MAX_VALUE / 2 : Integer.MAX_VALUE;
-				}
-			}
-		}
-		crossesOnLine = 0;
-		zerosOnLine = 0;
-		emptyTileX = -1;
-		emptyTileY = -1;
-		for(byte i = 0; i < map.length; i++) {
-			if(map[i][map.length - 1 - i] == Tile.CROSS) {
-				crossesOnLine++;
-			} else if(map[i][map.length - 1 - i] == Tile.ZERO) {
-				zerosOnLine++;
-			} else if(map[i][map.length - 1 - i] == Tile.EMPTY) {
-				emptyTileX = i;
-				emptyTileY = (byte)(map.length - 1 - i);
-			}
-		}
-		if(crossesOnLine == map.length) {
-			Display.showResult("Crosses");
-			return true;
-		} else if(zerosOnLine == map.length) {
-			Display.showResult("Zeroes");
-			return true;
-		} else if(zerosOnLine == map.length - 1) {
-			if(emptyTileX >= 0 & emptyTileY >= 0) {
-				if(map[emptyTileX][emptyTileY] == Tile.EMPTY) {	
-					priorityMap[emptyTileX][emptyTileY] = isPlayerCross ? Integer.MAX_VALUE : Integer.MAX_VALUE / 2;
-				}
-			}
-		} else if(crossesOnLine == map.length - 1) {
-			if(emptyTileX >= 0 & emptyTileY >= 0) {
-				if(map[emptyTileX][emptyTileY] == Tile.EMPTY) {
-					priorityMap[emptyTileX][emptyTileY] = isPlayerCross ? Integer.MAX_VALUE / 2 : Integer.MAX_VALUE;
-				}
-			}
 		}
 		return false;
 	}
@@ -393,6 +296,7 @@ public class Game implements Runnable{
 			}
 			map[x][y] = isCrossTurn ? Tile.CROSS : Tile.ZERO;
 			priorityMap[x][y] = Integer.MIN_VALUE;
+			checkNextTurnVictory();
 			isCrossTurn = !isCrossTurn;
 			break;
 		case HARD:
@@ -408,6 +312,7 @@ public class Game implements Runnable{
 			}
 			map[x][y] = isCrossTurn ? Tile.CROSS : Tile.ZERO;
 			changePriority(x, y);
+			checkNextTurnVictory();
 			isCrossTurn = !isCrossTurn;
 			break;
 		}
