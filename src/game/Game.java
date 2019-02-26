@@ -38,6 +38,7 @@ public class Game implements Runnable{
 	private static Sprite crossSprite;
 	private static Sprite zeroSprite;
 	private static BufferedImage emptyField;
+	private byte emptyTiles;
 	
 	
 	static {
@@ -80,7 +81,11 @@ public class Game implements Runnable{
 	public void update() {
 		if(Display.isNewGame()) {
 			newGame();
-			Display.refreshngl();
+			Display.refresh();
+		}
+		
+		if(emptyTiles <= 0) {
+			Display.showResult("Draw");
 		}
 		
 		int x = input.getX();
@@ -96,6 +101,7 @@ public class Game implements Runnable{
 			
 			if(map[y][x] == Tile.EMPTY) {
 				map[y][x] = isCrossTurn ? Tile.CROSS : Tile.ZERO;
+				emptyTiles--;
 				checkVictory();
 				changePriority(y, x);
 				isCrossTurn = !isCrossTurn;
@@ -206,10 +212,10 @@ public class Game implements Runnable{
 				}
 			}
 			if(crossesOnLine == map.length) {
-				System.out.println("Crosses wins");
+				Display.showResult("Crosses");
 				return true;
 			} else if(zerosOnLine == map.length) {
-				System.out.println("Zeros wins");
+				Display.showResult("Zeroes");
 				return true;
 			} else if(zerosOnLine == map.length - 1) {
 				if(emptyTileX >= 0 & emptyTileY >= 0) {
@@ -250,10 +256,10 @@ public class Game implements Runnable{
 				}
 			}
 			if(crossesOnLine == map.length) {
-				System.out.println("Crosses wins");
+				Display.showResult("Crosses");
 				return true;
 			} else if(zerosOnLine == map.length) {
-				System.out.println("Zeros wins");
+				Display.showResult("Zeroes");
 				return true;
 			} else if(zerosOnLine == map.length - 1) {
 				if(emptyTileX >= 0 & emptyTileY >= 0) {
@@ -326,10 +332,10 @@ public class Game implements Runnable{
 			}
 		}
 		if(crossesOnLine == map.length) {
-			System.out.println("Crosses wins");
+			Display.showResult("Crosses");
 			return true;
 		} else if(zerosOnLine == map.length) {
-			System.out.println("Zeros wins");
+			Display.showResult("Zeroes");
 			return true;
 		} else if(zerosOnLine == map.length - 1) {
 			if(emptyTileX >= 0 & emptyTileY >= 0) {
@@ -405,6 +411,7 @@ public class Game implements Runnable{
 			isCrossTurn = !isCrossTurn;
 			break;
 		}
+		emptyTiles--;
 		System.out.println("Turn: (" + x + ", " + y + ")");
 	}
 	
@@ -414,6 +421,7 @@ public class Game implements Runnable{
 				map[i][j] = Tile.EMPTY;
 			}
 		}
+		emptyTiles = (byte) (map.length * map.length);
 		priorityMap[1][1] = 4;
 		priorityMap[0][0] = 3;
 		priorityMap[2][0] = 3;
@@ -440,33 +448,32 @@ public class Game implements Runnable{
 			try {
 				//cols
 				for(int ii = i - 2; ii <= i + 2; ii++) {
-					if(ii >= 0 & ii < map.length) {
+					try {
 						priorityMap[ii][j]++;
-					}
+					} catch(ArrayIndexOutOfBoundsException ignore) { }
 				}
 				//rows
 				for(int jj = j - 2; jj <= j + 2; jj++) {
-					if(jj >= 0 & jj < map.length) {
+					try {
 						priorityMap[i][jj]++;
-					}
+					} catch(ArrayIndexOutOfBoundsException ignore) { }
 				}
 				//diags
 				for(int ii = i - 1; ii <= i + 2; ii++) {
 					int n = map.length - 1;
-					if(ii >= 0 & ii < map.length) {
-						priorityMap[ii + i][ii]++;
-
-					}
-					if(i + ii >= 0 & i + ii < map.length & i-j-ii >= 0 & i-j-ii < map.length) {
-						priorityMap[i-j-ii][ii]++;
-					}
+					try {
+						priorityMap[ii][ii-i+j]++;
+					} catch (ArrayIndexOutOfBoundsException ignore) { }
+					try {
+						priorityMap[ii][i-ii+j]++;
+					} catch (ArrayIndexOutOfBoundsException ignore) { }
 				}
 				//nearest tiles
 				for(int ii = i-1; ii <= i+1; ii++) {
 					for(int jj= j - 1; jj <= j+1; jj++) {
-						if(ii >= 0 & ii < map.length & jj >= 0 & jj < map.length) {
+						try {
 							priorityMap[ii][jj]++;
-						}
+						} catch(ArrayIndexOutOfBoundsException ignore) { }
 					}
 				}
 				
@@ -474,31 +481,28 @@ public class Game implements Runnable{
 		}
 		//3) in the center of a line
 		if((i == 0 & j == 1) | (i == 1 & j == 0) | (i == 1 & j == 2) | (i == 2 & j == 1)) {
-			try {
-				//cols
-				for(int ii = i - 2; ii <= i + 2; ii++) {
-					if(ii >= 0 & ii < map.length) {
-						priorityMap[ii][j]++;
-					}
-				}
-				//rows
-				for(int jj = j - 2; jj <= j + 2; jj++) {
-					if(jj >= 0 & jj < map.length) {
-						priorityMap[i][jj]++;
-					}
-				}
-				//nearest tiles
-				for(int ii = i-1; ii <= i+1; ii++) {
-					for(int jj= j - 1; jj <= j+1; jj++) {
-						if(ii >= 0 & ii < map.length & jj >= 0 & jj < map.length) {
-							int n = map.length - 1;
-							if(ii + i != jj + j  &  jj != i-j-ii) {
-								priorityMap[ii][jj]++;
-							}
+			//cols
+			for(int ii = i - 2; ii <= i + 2; ii++) {
+				try {
+					priorityMap[ii][j]++;
+				} catch(ArrayIndexOutOfBoundsException ignore) { }
+			}
+			//rows
+			for(int jj = j - 2; jj <= j + 2; jj++) {
+				try {
+					priorityMap[i][jj]++;
+				} catch(ArrayIndexOutOfBoundsException ignore) { }
+			}
+			//nearest tiles
+			for(int ii = i-1; ii <= i+1; ii++) {
+				for(int jj= j - 1; jj <= j+1; jj++) {
+					try {
+						if(jj != ii-i+j && jj != i-ii+j) { // if not diag
+							priorityMap[ii][jj]++;
 						}
-					}
+					} catch(ArrayIndexOutOfBoundsException ignore) { }
 				}
-			} catch(ArrayIndexOutOfBoundsException e) { }
+			}
 		}
 		checkVictory();
 		priorityMap[i][j] = Integer.MIN_VALUE;

@@ -18,6 +18,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 
@@ -37,6 +38,7 @@ public class Display {
 	private static JMenuBar menu;
 	private static NewGameListener ngl;
 	private static Difficulty difficulty = Difficulty.EASY;
+	private static boolean newGame;
 	
 	
 	public static void create(int width, int height, String title, int clearColor, int numBuffers) {
@@ -176,18 +178,33 @@ public class Display {
 	}
 	
 	public static boolean isNewGame() {
-		return ngl.isNewGame();
+		return ngl.isNewGame() || newGame;
 	}
 	
 	public static boolean isWithComp() {
 		return ngl.isWithComp();
 	}
 	
-	public static void refreshngl() {
+	public static void refresh() {
+		newGame = false;
 		ngl.refresh();
 	}
 	
 	public static Difficulty getDifficulty() {
 		return difficulty;
+	}
+	
+	public static void showResult(String result) {
+		String message;
+		if(result.equals("Draw") || result == "Draw" || result.compareTo("Draw")==0) {
+			message = "No winner. Try again?";
+		} else { message = result + " wins. Try again?"; }
+		switch(JOptionPane.showConfirmDialog(window, message, "Game over" , JOptionPane.YES_NO_OPTION)) {
+		case JOptionPane.YES_OPTION:
+			newGame = true;
+			break;
+		case JOptionPane.NO_OPTION:
+			System.exit(0);
+		} 
 	}
 }
